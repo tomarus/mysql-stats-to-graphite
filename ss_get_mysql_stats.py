@@ -29,6 +29,7 @@ mysql_port = 3306
 
 graphite_host = '127.0.0.1'
 graphite_port = 2003
+display_host = ''
 
 no_replication_client = False   # prevent the queries needing "REPLICATION CLIENT" from running
 no_super = False                #  prevent queries needing SUPER from running
@@ -1010,6 +1011,7 @@ if __name__ == "__main__":
     parser.add_argument('--graphite-host', help='Graphite host', default=graphite_host)
     parser.add_argument('--graphite-port', help='Graphite port', default=graphite_port, type=int)
     parser.add_argument('--use-graphite', help='Send stats to Graphite', action='store_true')
+    parser.add_argument('--display-host', help='Hostname to use for graphite stats.')
     
     args = parser.parse_args()
     log_debug(args)
@@ -1019,8 +1021,10 @@ if __name__ == "__main__":
     
     output = []
     unix_ts = int(time.time())
-    sanitized_host = args.host.replace(':', '').replace('.', '').replace('/', '_')
-    sanitized_host = sanitized_host + '_' + str(args.port)
+    sanitized_host = args.display_host
+    if sanitized_host == "":
+        sanitized_host = args.host.replace(':', '').replace('.', '').replace('/', '_')
+        sanitized_host = sanitized_host + '_' + str(args.port)
     for stat in result.split():
         var_name, val = stat.split(':')
         output.append('mysql.%s.%s %s %d' % (sanitized_host, var_name, val, unix_ts))   
